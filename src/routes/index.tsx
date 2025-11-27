@@ -1,0 +1,34 @@
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
+// Lazy Loading the 3 Pages
+const Welcome = lazy(() => import("../pages/Welcome"));
+const LoginPage = lazy(() => import("../pages/LoginPage"));
+// Ensure the file name matches exactly what is in your folder (SignUp vs SignupPage)
+const SignupPage = lazy(() => import("../pages/SignUp")); 
+
+export default function Router() {
+  return (
+    <BrowserRouter>
+      {/* Suspense shows a loading text while the code chunk is being downloaded */}
+      <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading Application...</div>}>
+        <Routes>
+          
+          {/* --- PUBLIC ROUTES --- */}
+          
+          {/* Root path loads the Welcome page */}
+          <Route path="/" element={<Welcome />} />
+          
+          {/* Auth pages */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+
+          {/* --- FALLBACK ROUTE --- */}
+          {/* If user types a random URL, redirect them back to Welcome */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
