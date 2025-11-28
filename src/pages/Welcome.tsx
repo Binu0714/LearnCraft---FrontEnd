@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LuSparkles, LuUsers, LuBookOpen, LuTrophy } from 'react-icons/lu';
+import { LuSparkles} from 'react-icons/lu';
 import { FaArrowRight } from 'react-icons/fa';
 
-const Welcome: React.FC = () => {
+export default function Welcome() {
   return (
     <div className="min-h-screen flex flex-col font-sans bg-slate-50 relative overflow-hidden selection:bg-blue-100 selection:text-blue-900">
       
@@ -74,4 +74,3 @@ const Welcome: React.FC = () => {
   );
 };
 
-export default Welcome;

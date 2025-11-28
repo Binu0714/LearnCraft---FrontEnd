@@ -1,10 +1,47 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, {useState, type FormEvent} from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
+import { register } from '../services/auth';
 
-const SignupPage: React.FC = () => {
+export default function SignUp() {
+
+const navigate = useNavigate();
+
+const [username, setUsername] = useState('');
+const [email, setEmail] = useState('');
+const [password, setPassword] = useState('');
+
+const handleRegister = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!username || !email || !password) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    try{
+      const obj = {
+        username,
+        email,
+        password
+      }
+
+      const res: any = await register(obj)
+      console.log(res.data);
+      console.log(res.message);
+
+      alert('Registration successful! You can now log in.');
+
+      navigate('/login');
+
+    }catch (error: any) {
+      console.error(error?.response?.data);
+    }
+}
+
+
   return (
     <div className="flex h-screen w-full font-sans">
       
@@ -30,6 +67,8 @@ const SignupPage: React.FC = () => {
               <input 
                 type="text" 
                 placeholder="Choose a username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
@@ -40,6 +79,8 @@ const SignupPage: React.FC = () => {
               <input 
                 type="email" 
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
@@ -50,11 +91,13 @@ const SignupPage: React.FC = () => {
               <input 
                 type="password" 
                 placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
 
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors mt-2">
+            <button onClick={handleRegister} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors mt-2">
               Sign up
             </button>
           </form>
@@ -105,4 +148,3 @@ const SignupPage: React.FC = () => {
   );
 };
 
-export default SignupPage;

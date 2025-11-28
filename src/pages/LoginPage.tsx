@@ -4,7 +4,7 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
 
-const LoginPage: React.FC = () => {
+export default function LoginPage() {
   return (
     <div className="flex h-screen w-full font-sans">
       
@@ -100,5 +100,3 @@ const LoginPage: React.FC = () => {
     </div>
   );
 };
-
-export default LoginPage;

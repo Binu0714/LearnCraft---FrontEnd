@@ -1,10 +1,8 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
-// Lazy Loading the 3 Pages
 const Welcome = lazy(() => import("../pages/Welcome"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
-// Ensure the file name matches exactly what is in your folder (SignUp vs SignupPage)
 const SignupPage = lazy(() => import("../pages/SignUp")); 
 
 export default function Router() {
