@@ -1,10 +1,53 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; // Use Link for SPA navigation
+import { Link } from 'react-router-dom'; 
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
+import { useNavigate } from "react-router-dom"
+import { getMyDetails, login } from '../services/auth';
+import { AuthContext } from '../context/authContext';
+
 
 export default function LoginPage() {
+
+const navigate = useNavigate();
+
+const { setUser } = React.useContext(AuthContext);
+const [ email, setEmail ] = React.useState('');
+const [ password, setPassword ] = React.useState('');
+
+const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    try{
+      const res = await login(email, password)
+      console.log(res.data.accessToken)
+
+      if (!res.data.accessToken) {
+        alert('Login failed. Please try again.');
+        return;
+      }
+
+      await localStorage.setItem("accessToken", res.data.accessToken)
+      await localStorage.setItem("refreshToken", res.data.refreshToken)
+
+      const detail = await getMyDetails();
+      setUser(detail.data);
+
+      alert('Login successful! Redirecting to dashboard.');
+      navigate('/dashboard');
+
+    }catch(error){
+      console.error(error);
+      alert('An error occurred during login. Please try again.');
+    }
+}
+
   return (
     <div className="flex h-screen w-full font-sans">
       
@@ -29,6 +72,8 @@ export default function LoginPage() {
               <input 
                 type="email" 
                 placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
@@ -38,6 +83,8 @@ export default function LoginPage() {
               <input 
                 type="password" 
                 placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-gray-800 text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
@@ -50,7 +97,7 @@ export default function LoginPage() {
               <a href="#" className="text-sm text-blue-600 hover:underline font-medium">Forgot password?</a>
             </div>
 
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors mt-2">
+            <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors mt-2">
               Sign in
             </button>
           </form>

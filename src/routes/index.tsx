@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 const Welcome = lazy(() => import("../pages/Welcome"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const SignupPage = lazy(() => import("../pages/SignUp")); 
+const Dashboard = lazy(() => import("../pages/Dashboard"));
 
 export default function Router() {
   return (
@@ -20,6 +21,7 @@ export default function Router() {
           {/* Auth pages */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* --- FALLBACK ROUTE --- */}
           {/* If user types a random URL, redirect them back to Welcome */}

@@ -33,7 +33,6 @@ const handleRegister = async (e: FormEvent) => {
       console.log(res.message);
 
       alert('Registration successful! You can now log in.');
-
       navigate('/login');
 
     }catch (error: any) {
