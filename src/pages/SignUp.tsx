@@ -145,6 +145,6 @@ const handleRegister = async (e: FormEvent) => {
       </div>
 
     </div>
-  );
-};
+  )
+}
 
