@@ -6,6 +6,7 @@ import {
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
 import { getSubjects } from "../services/subject";
+import { createRoutine, getRoutines, deleteRoutine } from "../services/routines"; 
 
 interface Subject {
   id: number;
@@ -14,7 +15,7 @@ interface Subject {
 }
 
 interface Routine {
-  id: number;
+  _id: string;
   name: string;
   startTime: string;
   endTime: string;
@@ -48,11 +49,7 @@ const SmartSchedule: React.FC = () => {
   const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<number[]>([]);
   const [priorities, setPriorities] = useState<Record<number, number>>({});
-  const [routines, setRoutines] = useState<Routine[]>([
-    { id: 1, name: "Lunch Break", startTime: "12:00", endTime: "13:00" },
-    { id: 2, name: "Sleep", startTime: "23:00", endTime: "06:00" }
-  ]);
-
+  const [routines, setRoutines] = useState<Routine[]>([]);
 
 useEffect(() => {
     const fetchSubjects = async () => {
@@ -69,6 +66,19 @@ useEffect(() => {
             );
 
             setAvailableSubjects(subjectsWithId);  
+
+            const routineRes: any = await getRoutines();
+
+            const userRoutines = routineRes.data.map((r: any) => ({
+                    _id: r._id,
+                    name: r.name,
+                    startTime: r.startTime,
+                    endTime: r.endTime
+                })
+            );
+
+            setRoutines(userRoutines);
+
         } catch (err) {
             console.error("Failed to fetch subjects:", err);
         }
@@ -78,7 +88,6 @@ useEffect(() => {
     }, 
 []);
   
-  // New Routine Form State
   const [newRoutine, setNewRoutine] = useState({ name: "", start: "", end: "" });
   
   // Generation State
@@ -116,14 +125,47 @@ useEffect(() => {
   };
 
   // Add Routine
-  const addRoutine = () => {
-    if (!newRoutine.name || !newRoutine.start || !newRoutine.end) return;
-    setRoutines([...routines, { id: Date.now(), name: newRoutine.name, startTime: newRoutine.start, endTime: newRoutine.end }]);
-    setNewRoutine({ name: "", start: "", end: "" });
+  const addRoutine = async () => {
+    if (!newRoutine.name || !newRoutine.start || !newRoutine.end) {
+      alert("Please fill in all routine fields.");
+      return;
+    }
+
+    try{
+        const res: any = await createRoutine({
+            name: newRoutine.name,
+            startTime: newRoutine.start,
+            endTime: newRoutine.end
+        })
+
+        setRoutines([
+            ...routines, 
+            {
+                _id: res.data._id,
+                name: res.data.name,
+                startTime: res.data.startTime,
+                endTime: res.data.endTime
+            }
+        ]);
+
+        setNewRoutine({ name: "", start: "", end: "" });
+        alert("Routine added successfully!");
+
+    } catch (err) {
+        console.error("Failed to create routine:", err);
+    }
   };
 
-  const removeRoutine = (id: number) => {
-    setRoutines(routines.filter(r => r.id !== id));
+  const removeRoutine = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this routine?")) {
+        try{
+            await deleteRoutine(id);
+            setRoutines(routines.filter(r => r._id !== id));
+            alert("Routine deleted successfully!");
+        } catch (err) {
+            console.error("Failed to delete routine:", err);
+        }
+    }
   };
 
   // --- GENERATE ALGORITHM (Mock Logic) ---
@@ -267,12 +309,12 @@ useEffect(() => {
               {/* List Routines */}
               <div className="space-y-2 mb-6">
                 {routines.map(r => (
-                  <div key={r.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
+                  <div key={r._id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100">
                     <div>
                       <span className="font-semibold text-slate-700 text-sm block">{r.name}</span>
                       <span className="text-xs text-slate-500">{r.startTime} - {r.endTime}</span>
                     </div>
-                    <button onClick={() => removeRoutine(r.id)} className="text-slate-400 hover:text-red-500 p-1">
+                    <button onClick={() => removeRoutine(r._id)} className="text-slate-400 hover:text-red-500 p-1">
                       <FaTrash size={12} />
                     </button>
                   </div>
