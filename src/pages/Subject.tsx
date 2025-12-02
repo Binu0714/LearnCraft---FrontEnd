@@ -53,7 +53,7 @@ const MySubjects: React.FC = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUser(null);
-    navigate("/login");
+    navigate("/home");
   };
 
   // --- Handlers ---
