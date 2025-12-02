@@ -11,11 +11,11 @@ import {
   FaUser        
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
-import { createSubject, getSubjects, deleteSubject } from "../services/subject";
+import { createSubject, getSubjects, deleteSubject, updateSubject } from "../services/subject";
 import { AuthContext } from "../context/authContext"; 
 
 interface Subject {
-  id: string;
+  _id: string;
   name: string;
   description: string;
   color: string; 
@@ -80,7 +80,7 @@ const MySubjects: React.FC = () => {
       try{
         await deleteSubject(id);
 
-        setSubjects(subjects.filter(s => s.id !== id));
+        setSubjects(subjects.filter(s => s._id !== id));
         alert("Subject deleted successfully.");
 
       } catch (error) {
@@ -97,12 +97,31 @@ const MySubjects: React.FC = () => {
     
     if (editingSubject) {
      
-      setSubjects(subjects.map(s => 
-        s.id === editingSubject.id 
-          ? { ...s, name, description, color }
-          : s
-      ));
+      const updateExistingSubject = async () => {
+        try {
+          const obj = {
+            name,
+            description,
+            color
+          }
+          const res: any = await updateSubject(editingSubject._id, obj);
 
+          const updatedSubject = {
+            ...res.data,
+            timeLearned: res.data.timeLearned || "0m"
+          };
+
+          setSubjects(subjects.map(s => s._id === editingSubject._id ? updatedSubject : s));
+
+          console.log(res.data);
+          alert(`Subject updated successfully: ${res?.data?.name}`);
+
+        } catch (error) {
+          console.error("Failed to update subject:", error);
+        }
+      };
+
+      updateExistingSubject();
     } else {
       
       const createNewSubject = async () => {
@@ -141,8 +160,8 @@ const MySubjects: React.FC = () => {
     try {
       const res: any = await getSubjects();  
     
-      const subjectsWithId = res.data.map((s: any, index: number) => ({
-        id: s._id || index, 
+      const subjectsWithId = res.data.map((s: any) => ({
+        id: s._id, 
         name: s.name,
         description: s.description,
         color: s.color,
@@ -236,10 +255,10 @@ const MySubjects: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {subjects.map((subject) => (
               <SubjectCard 
-                key={subject.id} 
+                key={subject._id} 
                 subject={subject} 
                 onEdit={() => handleOpenModal(subject)}
-                onDelete={() => handleDelete(subject.id)}
+                onDelete={() => handleDelete(subject._id)}
               />
             ))}
           </div>
