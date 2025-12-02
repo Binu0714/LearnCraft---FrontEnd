@@ -175,7 +175,8 @@ const MySubjects: React.FC = () => {
   };
 
   fetchSubjects();
-}, []); // Empty dependency array → runs only once on mount
+}, 
+[]); // Empty dependency array → runs only once on mount
 
 
   return (
