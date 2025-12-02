@@ -32,10 +32,10 @@ const Dashboard: React.FC = () => {
 
           {/* Center Links (Desktop) */}
           <div className="hidden md:flex items-center gap-8">
-            <NavLink active>Dashboard</NavLink>
-            <NavLink>My Subjects</NavLink>
-            <NavLink>Analytics</NavLink>
-            <NavLink>Community</NavLink>
+            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/subjects">My Subjects</Link>
+            <Link to="/analytics">Analytics</Link>
+            <Link to="/community">Community</Link>
           </div>
 
           {/* Right Side: Profile & Logout */}
