@@ -9,3 +9,8 @@ export const getSubjects = async () => {
     const res = await api.get('/subjects');   
     return res.data;
 }
+
+export const deleteSubject = async (subjectId: string) => {
+    const res = await api.delete(`/subjects/${subjectId}`);   
+    return res.data;
+}

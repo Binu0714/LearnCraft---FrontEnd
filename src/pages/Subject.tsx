@@ -11,11 +11,11 @@ import {
   FaUser        
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
-import { createSubject, getSubjects } from "../services/subject";
+import { createSubject, getSubjects, deleteSubject } from "../services/subject";
 import { AuthContext } from "../context/authContext"; 
 
 interface Subject {
-  id: number;
+  id: string;
   name: string;
   description: string;
   color: string; 
@@ -74,9 +74,20 @@ const MySubjects: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async(id: string) => {
     if (window.confirm("Are you sure you want to delete this subject?")) {
-      setSubjects(subjects.filter((s) => s.id !== id));
+
+      try{
+        await deleteSubject(id);
+
+        setSubjects(subjects.filter(s => s.id !== id));
+        alert("Subject deleted successfully.");
+
+      } catch (error) {
+        console.error("Failed to delete subject:", error);
+        alert("Failed to delete subject. Please try again.");
+      }
+
     }
   };
 
@@ -131,7 +142,7 @@ const MySubjects: React.FC = () => {
       const res: any = await getSubjects();  
     
       const subjectsWithId = res.data.map((s: any, index: number) => ({
-        id: s.id || index, 
+        id: s._id || index, 
         name: s.name,
         description: s.description,
         color: s.color,
