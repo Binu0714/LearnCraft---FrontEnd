@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   FaPlus, 
@@ -11,7 +11,7 @@ import {
   FaUser        
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
-import { createSubject } from "../services/subject";
+import { createSubject, getSubjects } from "../services/subject";
 import { AuthContext } from "../context/authContext"; 
 
 interface Subject {
@@ -29,6 +29,8 @@ const bgColors: Record<string, string> = {
   orange: "bg-orange-500",
   red: "bg-red-500",
   pink: "bg-pink-500",
+  yellow: "bg-yellow-400",
+  cyan: "bg-cyan-500",
 };
 
 const MySubjects: React.FC = () => {
@@ -121,7 +123,30 @@ const MySubjects: React.FC = () => {
     setIsModalOpen(false);
   };
 
-  const colors = ["blue", "green", "purple", "orange", "red", "pink"];
+  const colors = ["blue", "green", "purple", "orange", "red", "pink", "yellow", "cyan"];
+
+  useEffect(() => {
+  const fetchSubjects = async () => {
+    try {
+      const res: any = await getSubjects();  
+    
+      const subjectsWithId = res.data.map((s: any, index: number) => ({
+        id: s.id || index, 
+        name: s.name,
+        description: s.description,
+        color: s.color,
+        timeLearned: s.timeLearned || "0m"
+      }));
+
+      setSubjects(subjectsWithId);  
+    } catch (err) {
+      console.error("Failed to fetch subjects:", err);
+    }
+  };
+
+  fetchSubjects();
+}, []); // Empty dependency array → runs only once on mount
+
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -314,6 +339,8 @@ const SubjectCard = ({ subject, onEdit, onDelete }: { subject: Subject, onEdit: 
     orange: "bg-orange-100 text-orange-700 border-orange-200",
     red: "bg-red-100 text-red-700 border-red-200",
     pink: "bg-pink-100 text-pink-700 border-pink-200",
+    yellow: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    cyan: "bg-cyan-100 text-cyan-700 border-cyan-200",
   };
 
   const themeClass = colorMap[subject.color] || colorMap.blue;
