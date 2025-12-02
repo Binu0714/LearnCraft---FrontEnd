@@ -34,8 +34,8 @@ const Dashboard: React.FC = () => {
           <div className="hidden md:flex items-center gap-8">
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/subjects">My Subjects</Link>
+            <Link to="/schedule">Smart Schedule</Link>
             <Link to="/analytics">Analytics</Link>
-            <Link to="/community">Community</Link>
           </div>
 
           {/* Right Side: Profile & Logout */}

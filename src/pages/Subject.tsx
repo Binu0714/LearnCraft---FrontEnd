@@ -1,17 +1,19 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { 
   FaPlus, 
   FaEdit, 
   FaTrash, 
   FaClock, 
   FaSearch, 
-  FaTimes 
+  FaTimes,
+  FaSignOutAlt, 
+  FaUser        
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
 import { createSubject } from "../services/subject";
+import { AuthContext } from "../context/authContext"; 
 
-// --- Types ---
 interface Subject {
   id: number;
   name: string;
@@ -20,7 +22,6 @@ interface Subject {
   timeLearned: string;
 }
 
-// --- Color Mapping for Tailwind ---
 const bgColors: Record<string, string> = {
   blue: "bg-blue-500",
   green: "bg-green-500",
@@ -31,26 +32,38 @@ const bgColors: Record<string, string> = {
 };
 
 const MySubjects: React.FC = () => {
+  // --- Auth Context & Router (Added for Navbar) ---
+  const { user, setUser } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   // --- Main Data State ---
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
 
-  // --- Individual Form States (No formData object) ---
+  // --- Individual Form States ---
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState("blue");
 
+  // --- Logout Logic (Added for Navbar) ---
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setUser(null);
+    navigate("/login");
+  };
+
   // --- Handlers ---
   const handleOpenModal = (subject?: Subject) => {
     if (subject) {
-      // Edit Mode: Populate individual states
+      // Edit Mode
       setEditingSubject(subject);
       setName(subject.name);
       setDescription(subject.description);
       setColor(subject.color);
     } else {
-      // Add Mode: Reset individual states
+      // Add Mode
       setEditingSubject(null);
       setName("");
       setDescription("");
@@ -66,15 +79,17 @@ const MySubjects: React.FC = () => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
+
     e.preventDefault();
     
     if (editingSubject) {
-      // Update Logic (Using individual states)
+     
       setSubjects(subjects.map(s => 
         s.id === editingSubject.id 
-          ? { ...s, name, description, color } // Update fields
+          ? { ...s, name, description, color }
           : s
       ));
+
     } else {
       
       const createNewSubject = async () => {
@@ -89,18 +104,15 @@ const MySubjects: React.FC = () => {
           const res: any = await createSubject(obj);
 
           const newSubject = {
-          ...res.data,
-          timeLearned: res.data.timeLearned || "0m" // ensure fallback
-        };
+            ...res.data,
+            timeLearned: res.data.timeLearned || "0m"
+          };
 
           setSubjects([...subjects, newSubject]);
-
-          console.log(res.data)
-          console.log(res.message)
-
+          console.log(res.data);
           alert(`Subject created successfully: ${res?.data?.name}`);
 
-        }catch (error) {
+        } catch (error) {
           console.error("Failed to create subject:", error);
         }
       };
@@ -114,22 +126,43 @@ const MySubjects: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       
-      {/* --- 1. TOP NAVBAR --- */}
-      <nav className="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+      {/* --- 1. TOP NAVBAR (Matched to Dashboard) --- */}
+      <nav className="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/home" className="flex items-center gap-2">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-2">
             <div className="bg-blue-600 p-1.5 rounded-lg">
               <LuSparkles className="text-lg" />
             </div>
             <span className="text-lg font-bold tracking-wide">LearnCraft</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <Link to="/home" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Dashboard</Link>
-            <span className="text-white text-sm font-medium border-b-2 border-blue-500 pb-0.5">My Subjects</span>
-            <Link to="#" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Analytics</Link>
           </div>
-          <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-xs font-bold border border-blue-500">
-            U
+
+          {/* Center Links */}
+          <div className="hidden md:flex items-center gap-8">
+            <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Dashboard</Link>
+            {/* Active state style applied to My Subjects */}
+            <Link to="/subjects" className="text-white text-sm font-medium border-b-2 border-blue-500 pb-0.5">My Subjects</Link>
+            <Link to="/schedule" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Smart Schedule</Link>
+            <Link to="/analytics" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Analytics</Link>
+          </div>
+
+          {/* Right Side: Profile & Logout */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-slate-300">
+              <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-xs font-bold text-white border border-blue-500">
+                {user?.username ? user.username.charAt(0).toUpperCase() : <FaUser />}
+              </div>
+              <span className="hidden sm:block text-sm font-medium">{user?.username || "Student"}</span>
+            </div>
+            
+            <button 
+              onClick={handleLogout}
+              className="text-slate-400 hover:text-white transition-colors"
+              title="Logout"
+            >
+              <FaSignOutAlt className="text-lg" />
+            </button>
           </div>
         </div>
       </nav>
@@ -205,8 +238,8 @@ const MySubjects: React.FC = () => {
                 <input 
                   type="text" 
                   required
-                  value={name} // Using individual state
-                  onChange={(e) => setName(e.target.value)} // Setting individual state
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Advanced Calculus"
                   className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
                 />
@@ -218,8 +251,8 @@ const MySubjects: React.FC = () => {
                 <textarea 
                   rows={3}
                   required
-                  value={description} // Using individual state
-                  onChange={(e) => setDescription(e.target.value)} // Setting individual state
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   placeholder="Short description of what you are learning..."
                   className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
                 />
@@ -233,7 +266,7 @@ const MySubjects: React.FC = () => {
                     <button
                       type="button"
                       key={c}
-                      onClick={() => setColor(c)} // Setting individual state
+                      onClick={() => setColor(c)}
                       className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                         color === c
                           ? "ring-2 ring-offset-2 ring-slate-800 scale-110"
