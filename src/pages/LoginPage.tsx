@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom"
 import { getMyDetails, login } from '../services/auth';
 import { AuthContext } from '../context/authContext';
 
-
 export default function LoginPage() {
 
 const navigate = useNavigate();
