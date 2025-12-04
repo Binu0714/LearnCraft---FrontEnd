@@ -9,6 +9,7 @@ import { getSubjects } from "../services/subject";
 import { createRoutine, getRoutines, deleteRoutine } from "../services/routines"; 
 import { setPriorityLevel, getPriorityLevel } from "../services/priority";
 import { generateScheduleWithGemini} from "../services/gemini";
+import { saveUserSchedule } from "../services/schedule";
 
 interface Subject {
   id: number;
@@ -85,7 +86,7 @@ const SmartSchedule: React.FC = () => {
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [newRoutine, setNewRoutine] = useState({ name: "", start: "", end: "" });
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); // State for saving
+  const [isSaving, setIsSaving] = useState(false); 
   const [schedule, setSchedule] = useState<TimeSlot[]>([]);
 
   useEffect(() => {
@@ -100,6 +101,7 @@ const SmartSchedule: React.FC = () => {
                     timeLearned: s.timeLearned || "0m"
                 })
             );
+            
             setAvailableSubjects(subjectsWithId);  
 
             const routineRes: any = await getRoutines();
@@ -114,9 +116,11 @@ const SmartSchedule: React.FC = () => {
 
             const priorityRes: any = await getPriorityLevel();
             const savedPriorities: Record<string, number> = {};
+
               priorityRes.data.forEach((p: any) => {
                 savedPriorities[p.subjectId] = p.priority;
               });
+
             setPriorities(savedPriorities);
         } catch (err) {
             console.error("Failed to fetch data:", err);
@@ -154,6 +158,8 @@ const SmartSchedule: React.FC = () => {
     }
   };
 
+  // Create Routine
+
   const addRoutine = async () => {
     if (!newRoutine.name || !newRoutine.start || !newRoutine.end) {
       alert("Please fill in all routine fields.");
@@ -173,6 +179,8 @@ const SmartSchedule: React.FC = () => {
     }
   };
 
+  // Remove Routine
+
   const removeRoutine = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this routine?")) {
         try{
@@ -184,6 +192,8 @@ const SmartSchedule: React.FC = () => {
         }
     }
   };
+
+  // Generate Schedule
 
   const generateSchedule = async () => {
     if (selectedSubjectIds.length === 0) {
@@ -205,34 +215,56 @@ const SmartSchedule: React.FC = () => {
       const formattedSchedule = aiSchedule.map((slot: TimeSlot) => ({
         ...slot,
         color: bgColors[slot.color || "blue"] ? slot.color : "blue"
-      }));
+      })
+    );
 
       const cleanSchedule = mergeConsecutiveSlots(formattedSchedule);
       setSchedule(cleanSchedule);
+
     } catch (error) {
       console.error("Schedule Generation Failed:", error);
       alert("Failed to generate schedule. Please try again.");
+
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // --- NEW: Save Function ---
+  // Save Schedule
+
   const handleSaveSchedule = async () => {
-    // if (schedule.length === 0) return;
-    // setIsSaving(true);
-    // try {
-    //   await saveUserSchedule(schedule);
-    //   alert("Schedule saved successfully!");
-    // } catch (error) {
-    //   console.error("Save failed:", error);
-    //   alert("Failed to save schedule.");
-    // } finally {
-    //   setIsSaving(false);
-    // }
+    if (schedule.length === 0) return;
+    setIsSaving(true);
+
+    try {
+      console.log("Current Auth Context User:", user); 
+
+      const validUserId = user?._id || user?.id;
+
+      if (!validUserId) {
+        alert("Error: User ID not found. Please log out and log in again.");
+        setIsSaving(false);
+        return;
+      }
+
+      await saveUserSchedule({
+        userId: validUserId, 
+        date: new Date(),
+        slots: schedule
+      });
+
+      alert("Schedule saved successfully!");
+
+    } catch (error: any) {
+      console.error("Save failed:", error);
+      alert(error.response?.data?.message || "Failed to save schedule.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // --- NEW: Print Function ---
+  // Print Schedule
+
   const handlePrint = () => {
     window.print();
   };
