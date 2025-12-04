@@ -7,6 +7,7 @@ import {
 import { LuSparkles } from "react-icons/lu";
 import { getSubjects } from "../services/subject";
 import { createRoutine, getRoutines, deleteRoutine } from "../services/routines"; 
+import { setPriorityLevel, getPriorityLevel } from "../services/priority";
 
 interface Subject {
   id: number;
@@ -79,6 +80,16 @@ useEffect(() => {
 
             setRoutines(userRoutines);
 
+            const priorityRes: any = await getPriorityLevel();
+
+            const savedPriorities: Record<string, number> = {};
+
+              priorityRes.data.forEach((p: any) => {
+                savedPriorities[p.subjectId] = p.priority;
+              });
+
+            setPriorities(savedPriorities);
+
         } catch (err) {
             console.error("Failed to fetch subjects:", err);
         }
@@ -103,25 +114,36 @@ useEffect(() => {
   };
 
   // --- Handlers ---
-  
-  // Toggle Subject Selection
+ 
   const toggleSubject = (id: number) => {
-    if (selectedSubjectIds.includes(id)) {
-      setSelectedSubjectIds(selectedSubjectIds.filter(sid => sid !== id));
-      // Remove priority if deselected
-      const newPriorities = { ...priorities };
-      delete newPriorities[id];
-      setPriorities(newPriorities);
-    } else {
+  if (selectedSubjectIds.includes(id)) {
+      setSelectedSubjectIds(selectedSubjectIds.filter((sid) => sid !== id));
+      const updated = { ...priorities };
+      delete updated[id];
+
+      setPriorities(updated);
+  } else {
       setSelectedSubjectIds([...selectedSubjectIds, id]);
-      // Default priority 3
-      setPriorities({ ...priorities, [id]: 3 });
-    }
+      
+      if (!priorities[id]) 
+        setPriorities({
+       ...priorities, 
+       [id]: 3 
+      });
+  }
   };
 
-  // Set Priority (1-5)
-  const handlePriorityChange = (id: number, level: number) => {
+  const handlePriorityChange = async(id: number, level: number) => {
     setPriorities({ ...priorities, [id]: level });
+
+    try{
+      await setPriorityLevel({
+          subjectId: id,
+          priority: level
+      });
+    } catch (err) {
+      console.error("Failed to set priority level:", err);
+    }
   };
 
   // Add Routine

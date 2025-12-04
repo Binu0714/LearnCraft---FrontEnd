@@ -161,7 +161,7 @@ const MySubjects: React.FC = () => {
       const res: any = await getSubjects();  
     
       const subjectsWithId = res.data.map((s: any) => ({
-        id: s._id, 
+        _id: s._id, 
         name: s.name,
         description: s.description,
         color: s.color,
