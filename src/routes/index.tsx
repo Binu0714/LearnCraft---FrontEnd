@@ -7,6 +7,7 @@ const SignupPage = lazy(() => import("../pages/SignUp"));
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const MySubjects = lazy(() => import("../pages/Subject"));
 const SmartSchedule = lazy(() => import("../pages/SmartSchedule"));
+const AuthSuccess = lazy(() => import("../pages/AuthSuccess"));
 
 export default function Router() {
   return (
@@ -26,6 +27,7 @@ export default function Router() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/subjects" element={<MySubjects />} />
           <Route path="/schedule" element={<SmartSchedule />} />
+          <Route path="/auth/success" element={<AuthSuccess />} />
 
           {/* --- FALLBACK ROUTE --- */}
           {/* If user types a random URL, redirect them back to Welcome */}

@@ -1,23 +1,17 @@
 @import "tailwindcss";
 
-/* ================================
-   PRINT FIXES FOR SCHEDULE
-   ================================ */
 @media print {
 
-  /* Remove browser default margins */
   @page {
     margin: 0;
   }
 
-  /* Remove all outer spacing */
   body {
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
   }
 
-  /* Root printable container */
   #printable-schedule {
     margin: 0 !important;
     padding: 0 !important;
@@ -25,43 +19,36 @@
     break-inside: auto !important;
   }
 
-  /* Remove margin/padding from first element to avoid empty first page */
   #printable-schedule > *:first-child {
     margin-top: 0 !important;
     padding-top: 0 !important;
   }
 
-  /* Allow children to flow across pages safely */
   #printable-schedule * {
     page-break-inside: auto !important;
     break-inside: auto !important;
   }
 
-  /* Items that must stay together (e.g., headers) */
   .print-keep {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
 
-  /* Individual schedule items */
   .schedule-item {
     page-break-inside: auto !important;
     break-inside: auto !important;
   }
 
-  /* Multi-column / grid fixes */
   .schedule-grid,
   .schedule-row {
     page-break-inside: auto !important;
     break-inside: auto !important;
   }
 
-  /* Remove UI elements that shouldn't print */
   .no-print {
     display: none !important;
   }
 
-  /* Avoid content cutoff at bottom */
   .page-break {
     page-break-after: always !important;
   }
