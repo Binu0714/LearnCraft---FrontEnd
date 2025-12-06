@@ -30,3 +30,8 @@ export const updateMyDetails = async (userId: string, data: any) => {
   const res = await api.put(`/auth/${userId}`, data)
   return res.data
 }
+
+export const requestPasswordReset = async (email: string) => {
+  const res = await api.post("/auth/request-password-reset", { email })
+  return res.data
+}
