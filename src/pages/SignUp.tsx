@@ -40,6 +40,13 @@ const handleRegister = async (e: FormEvent) => {
     }
 }
 
+const handleGoogleLogin = () => {
+  window.location.href = "http://localhost:5000/api/v1/auth/google";
+};
+
+const handleFacebookLogin = () => {
+  window.location.href = "http://localhost:5000/api/v1/auth/facebook";
+};
 
   return (
     <div className="flex h-screen w-full font-sans">
@@ -111,11 +118,11 @@ const handleRegister = async (e: FormEvent) => {
           </div>
 
           <div className="flex gap-4">
-            <button className="flex-1 flex items-center justify-center gap-2 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+            <button onClick={handleGoogleLogin} className="flex-1 flex items-center justify-center gap-2 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
               <FcGoogle className="text-xl" />
               <span className="text-sm font-medium text-gray-700">Google</span>
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+            <button onClick={handleFacebookLogin} className="flex-1 flex items-center justify-center gap-2 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
               <FaFacebook className="text-xl text-blue-600" />
               <span className="text-sm font-medium text-gray-700">Facebook</span>
             </button>
