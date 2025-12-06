@@ -282,7 +282,7 @@ const SmartSchedule: React.FC = () => {
             <span className="text-xl font-bold tracking-wide">LearnCraft</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/home" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Dashboard</Link>
+            <Link to="/dashboard" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Dashboard</Link>
             <Link to="/subjects" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">My Subjects</Link>
             <Link to="/schedule" className="text-white text-sm font-medium border-b-2 border-blue-500 pb-0.5">Smart Schedule</Link>
             <Link to="/analytics" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Analytics</Link>

@@ -25,3 +25,8 @@ export const getMyDetails = async () => {
   const res = await api.get("/auth/me")
   return res.data
 }
+
+export const updateMyDetails = async (userId: string, data: any) => {
+  const res = await api.put(`/auth/${userId}`, data)
+  return res.data
+}

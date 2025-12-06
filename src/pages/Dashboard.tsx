@@ -1,12 +1,21 @@
-import React, { useContext } from "react";
+import React, { useContext, useState} from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/authContext"; 
-import { FaBook, FaClock, FaChartLine, FaSignOutAlt, FaUser, FaPlay, FaRobot } from "react-icons/fa";
-import { LuSparkles } from "react-icons/lu"; // Your logo icon
+import { 
+  FaBook, FaClock, FaChartLine, FaSignOutAlt, FaUser, FaPlay, FaRobot, 
+  FaTimes, FaCamera, FaSave, FaPen 
+} from "react-icons/fa";
+import { LuSparkles } from "react-icons/lu";
+import { updateMyDetails } from "../services/auth";
 
 const Dashboard: React.FC = () => {
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({ username: "", email: "" });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -15,10 +24,46 @@ const Dashboard: React.FC = () => {
     navigate("/home");
   };
 
+  const openProfile = () => {
+    setEditFormData({
+      username: user?.username || "",
+      email: user?.email || "user@example.com" 
+    });
+    setIsEditing(false);
+    setIsProfileOpen(true);
+  };
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    
+    try {
+      const response: any = await updateMyDetails(user!.id, editFormData);
+
+      const updatedData = response.data || response;
+
+      setUser((prev: any) => ({
+        ...prev,
+        ...updatedData,
+        username: editFormData.username, // Force update from form data to be instant
+        email: editFormData.email
+      }));
+
+      setIsEditing(false);
+      alert("Profile updated successfully!");
+
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      alert("Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       
-      {/* --- 1. TOP NAVBAR (Website Style) --- */}
+      {/* --- 1. TOP NAVBAR --- */}
       <nav className="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           
@@ -30,7 +75,7 @@ const Dashboard: React.FC = () => {
             <span className="text-lg font-bold tracking-wide">LearnCraft</span>
           </div>
 
-          {/* Center Links (Desktop) */}
+          {/* Center Links */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/subjects">My Subjects</Link>
@@ -40,16 +85,21 @@ const Dashboard: React.FC = () => {
 
           {/* Right Side: Profile & Logout */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-slate-300">
+            
+            {/* CLICKABLE PROFILE SECTION */}
+            <button 
+              onClick={openProfile}
+              className="flex items-center gap-2 text-slate-300 hover:text-white hover:bg-slate-800 px-2 py-1.5 rounded-lg transition-all"
+            >
               <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-xs font-bold text-white border border-blue-500">
                 {user?.username ? user.username.charAt(0).toUpperCase() : <FaUser />}
               </div>
               <span className="hidden sm:block text-sm font-medium">{user?.username || "Student"}</span>
-            </div>
+            </button>
             
             <button 
               onClick={handleLogout}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-white transition-colors ml-2"
               title="Logout"
             >
               <FaSignOutAlt className="text-lg" />
@@ -58,7 +108,7 @@ const Dashboard: React.FC = () => {
         </div>
       </nav>
 
-      {/* --- 2. MAIN CONTENT CONTAINER --- */}
+      {/* --- 2. MAIN CONTENT --- */}
       <div className="max-w-7xl mx-auto px-6 py-10">
         
         {/* Welcome Section */}
@@ -134,7 +184,7 @@ const Dashboard: React.FC = () => {
           {/* RIGHT COLUMN (1/3 width) - Sidebar features */}
           <div className="space-y-8">
             
-            {/* AI Card (The Advanced Feature) */}
+            {/* AI Card */}
             <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-xl">
               <div className="flex items-center gap-2 mb-4">
                 <FaRobot className="text-2xl text-purple-200" />
@@ -165,6 +215,121 @@ const Dashboard: React.FC = () => {
 
         </div>
       </div>
+
+      {/* --- 3. PROFILE MODAL --- */}
+      {isProfileOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="font-bold text-slate-800 text-lg">My Profile</h3>
+              <button 
+                onClick={() => setIsProfileOpen(false)} 
+                className="text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <FaTimes size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-8">
+              <div className="flex flex-col items-center mb-6">
+                {/* Avatar */}
+                <div className="relative group cursor-pointer mb-4">
+                  <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg border-4 border-white ring-2 ring-blue-100">
+                    {editFormData.username.charAt(0).toUpperCase()}
+                  </div>
+                  {/* Camera Icon Overlay */}
+                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <FaCamera className="text-white text-xl" />
+                  </div>
+                </div>
+                
+                {!isEditing && (
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-slate-900">{user?.username}</h2>
+                    <p className="text-slate-500">{editFormData.email}</p>
+                    <span className="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">
+                      Free Plan
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Form / Details */}
+              <form onSubmit={handleProfileUpdate} className="space-y-4">
+                
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Username</label>
+                  {isEditing ? (
+                    <input 
+                      type="text" 
+                      value={editFormData.username}
+                      onChange={(e) => setEditFormData({...editFormData, username: e.target.value})}
+                      className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                      required
+                    />
+                  ) : (
+                    <div className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-700">
+                      {user?.username}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Email Address</label>
+                  {isEditing ? (
+                    <input 
+                      type="email" 
+                      value={editFormData.email}
+                      onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
+                      className="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                      required
+                    />
+                  ) : (
+                    <div className="w-full px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-100 text-slate-700">
+                      {editFormData.email}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="pt-6">
+                  {isEditing ? (
+                    <div className="flex gap-3">
+                      <button 
+                        type="button"
+                        onClick={() => setIsEditing(false)}
+                        className="flex-1 py-2 rounded-lg border border-slate-300 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit"
+                        disabled={isSaving}
+                        className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-colors flex items-center justify-center gap-2"
+                      >
+                        {isSaving ? "Saving..." : <><FaSave /> Save Changes</>}
+                      </button>
+                    </div>
+                  ) : (
+                    <button 
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="w-full py-2.5 rounded-lg border-2 border-slate-200 text-slate-600 font-bold hover:border-blue-500 hover:text-blue-600 transition-all flex items-center justify-center gap-2"
+                    >
+                      <FaPen size={14} /> Edit Profile
+                    </button>
+                  )}
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
