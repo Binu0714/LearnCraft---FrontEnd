@@ -13,6 +13,7 @@ import {
 import { LuSparkles } from "react-icons/lu";
 import { createSubject, getSubjects, deleteSubject, updateSubject } from "../services/subject";
 import { AuthContext } from "../context/authContext"; 
+import { useSnackbar } from 'notistack';
 
 interface Subject {
   _id: string;
@@ -34,6 +35,9 @@ const bgColors: Record<string, string> = {
 };
 
 const MySubjects: React.FC = () => {
+
+  const { enqueueSnackbar } = useSnackbar();
+
   // --- Auth Context & Router (Added for Navbar) ---
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -81,11 +85,11 @@ const MySubjects: React.FC = () => {
         await deleteSubject(id);
 
         setSubjects(subjects.filter(s => s._id !== id));
-        alert("Subject deleted successfully.");
+        enqueueSnackbar("Subject deleted successfully!", { variant: "success" });
 
       } catch (error) {
         console.error("Failed to delete subject:", error);
-        alert("Failed to delete subject. Please try again.");
+        enqueueSnackbar("Failed to delete subject. Please try again.", { variant: "error" });
       }
 
     }
@@ -114,7 +118,7 @@ const MySubjects: React.FC = () => {
           setSubjects(subjects.map(s => s._id === editingSubject._id ? updatedSubject : s));
 
           console.log(res.data);
-          alert(`Subject updated successfully: ${res?.data?.name}`);
+          enqueueSnackbar(`Subject updated successfully: ${res?.data?.name}`, { variant: "success" });
 
         } catch (error) {
           console.error("Failed to update subject:", error);
@@ -142,7 +146,7 @@ const MySubjects: React.FC = () => {
 
           setSubjects([...subjects, newSubject]);
           console.log(res.data);
-          alert(`Subject created successfully: ${res?.data?.name}`);
+          enqueueSnackbar(`Subject created successfully: ${res?.data?.name}`, { variant: "success" });
 
         } catch (error) {
           console.error("Failed to create subject:", error);

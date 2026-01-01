@@ -10,6 +10,7 @@ import { createRoutine, getRoutines, deleteRoutine } from "../services/routines"
 import { setPriorityLevel, getPriorityLevel } from "../services/priority";
 import { generateScheduleWithGemini} from "../services/gemini";
 import { saveUserSchedule } from "../services/schedule";
+import { useSnackbar } from 'notistack';
 
 interface Subject {
   id: number;
@@ -56,6 +57,8 @@ const cardTheme: Record<string, string> = {
 
 // --- Helper Function ---
 const mergeConsecutiveSlots = (slots: TimeSlot[]) => {
+
+
   if (slots.length === 0) return [];
   const merged: TimeSlot[] = [];
   let currentSlot = slots[0];
@@ -76,6 +79,9 @@ const mergeConsecutiveSlots = (slots: TimeSlot[]) => {
 };
 
 const SmartSchedule: React.FC = () => {
+
+  const { enqueueSnackbar } = useSnackbar();
+
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -162,7 +168,7 @@ const SmartSchedule: React.FC = () => {
 
   const addRoutine = async () => {
     if (!newRoutine.name || !newRoutine.start || !newRoutine.end) {
-      alert("Please fill in all routine fields.");
+      enqueueSnackbar("Please fill in all routine fields.", { variant: "warning" });
       return;
     }
     try{
@@ -173,7 +179,7 @@ const SmartSchedule: React.FC = () => {
         })
         setRoutines([...routines, { _id: res.data._id, name: res.data.name, startTime: res.data.startTime, endTime: res.data.endTime }]);
         setNewRoutine({ name: "", start: "", end: "" });
-        alert("Routine added successfully!");
+        enqueueSnackbar("Routine added successfully!", { variant: "success" });
     } catch (err) {
         console.error("Failed to create routine:", err);
     }
@@ -186,7 +192,7 @@ const SmartSchedule: React.FC = () => {
         try{
             await deleteRoutine(id);
             setRoutines(routines.filter(r => r._id !== id));
-            alert("Routine deleted successfully!");
+            enqueueSnackbar("Routine deleted successfully!", { variant: "success" });
         } catch (err) {
             console.error("Failed to delete routine:", err);
         }
@@ -197,7 +203,7 @@ const SmartSchedule: React.FC = () => {
 
   const generateSchedule = async () => {
     if (selectedSubjectIds.length === 0) {
-      alert("Please select at least one subject.");
+      enqueueSnackbar("Please select at least one subject.", { variant: "warning" });
       return;
     }
     setIsGenerating(true);
@@ -223,7 +229,7 @@ const SmartSchedule: React.FC = () => {
 
     } catch (error) {
       console.error("Schedule Generation Failed:", error);
-      alert("Failed to generate schedule. Please try again.");
+      enqueueSnackbar("Failed to generate schedule. Please try again.", { variant: "error" });
 
     } finally {
       setIsGenerating(false);
@@ -242,7 +248,7 @@ const SmartSchedule: React.FC = () => {
       const validUserId = user?._id || user?.id;
 
       if (!validUserId) {
-        alert("Error: User ID not found. Please log out and log in again.");
+        enqueueSnackbar("Error: User ID not found. Please log out and log in again.", { variant: "error" });
         setIsSaving(false);
         return;
       }
@@ -253,11 +259,11 @@ const SmartSchedule: React.FC = () => {
         slots: schedule
       });
 
-      alert("Schedule saved successfully!");
+      enqueueSnackbar("Schedule saved successfully!", { variant: "success" });
 
     } catch (error: any) {
       console.error("Save failed:", error);
-      alert(error.response?.data?.message || "Failed to save schedule.");
+      enqueueSnackbar(error.response?.data?.message || "Failed to save schedule.", { variant: "error" });
     } finally {
       setIsSaving(false);
     }

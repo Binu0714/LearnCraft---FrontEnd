@@ -6,14 +6,20 @@ import { LuSparkles } from 'react-icons/lu';
 import { FaTimes, FaEnvelope } from 'react-icons/fa'; 
 import { getMyDetails, login, requestPasswordReset } from '../services/auth';
 import { AuthContext } from '../context/authContext';
+import { useSnackbar } from 'notistack'
+import SuccessLoader from '../components/SuccessLoader';
 
 export default function LoginPage() {
+
+  const { enqueueSnackbar } = useSnackbar();
+
   const navigate = useNavigate();
   const { setUser } = useContext(AuthContext);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const[isSuccess, setIsSuccess] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
@@ -22,7 +28,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      alert('Please fill in all fields.');
+      enqueueSnackbar("Please fill in all fields.", { variant: "warning" });
       return;
     }
 
@@ -31,7 +37,7 @@ export default function LoginPage() {
       const res = await login(email, password);
 
       if (!res.data.accessToken) {
-        alert('Login failed. Please try again.');
+        enqueueSnackbar("Login failed. Please try again.", { variant: "error" });
         return;
       }
 
@@ -41,11 +47,16 @@ export default function LoginPage() {
       const detail = await getMyDetails();
       setUser(detail.data);
 
-      navigate('/dashboard');
+      setLoading(false);
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
 
     } catch (error) {
       console.error(error);
-      alert('Invalid email or password.');
+      enqueueSnackbar('Invalid email or password.', { variant: "error" });
 
     } finally {
       setLoading(false);
@@ -55,7 +66,7 @@ export default function LoginPage() {
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetEmail) {
-      alert("Please enter your email.");
+      enqueueSnackbar("Please enter your email.", { variant: "warning" });
       return;
     }
 
@@ -63,12 +74,12 @@ export default function LoginPage() {
 
     try {
       const res = await requestPasswordReset(resetEmail);
-      alert(res.message || "Password reset link sent! Please check your email.");
+      enqueueSnackbar(res.message || "Password reset link sent! Please check your email.", { variant: "success" });
       setIsModalOpen(false);
 
     } catch (error) {
       console.error(error);
-      alert("Failed to send reset link. Please try again.");
+      enqueueSnackbar("Failed to send reset link. Please try again.", { variant: "error" });
       
     } finally {
       setResetLoading(false);
@@ -88,6 +99,10 @@ export default function LoginPage() {
   const handleFacebookLogin = () => {
     window.location.href = "http://localhost:5000/api/v1/auth/facebook";
   };
+
+  if (isSuccess) {
+    return <SuccessLoader message="Preparing your workspace..." />;
+  }
 
   return (
     <div className="flex h-screen w-full font-sans relative">

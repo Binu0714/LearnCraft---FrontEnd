@@ -7,8 +7,12 @@ import {
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
 import { updateMyDetails } from "../services/auth";
+import { useSnackbar } from 'notistack';
 
 const Dashboard: React.FC = () => {
+
+  const { enqueueSnackbar } = useSnackbar();
+
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -50,11 +54,11 @@ const Dashboard: React.FC = () => {
       }));
 
       setIsEditing(false);
-      alert("Profile updated successfully!");
+      enqueueSnackbar("Profile updated successfully!", { variant: "success" });
 
     } catch (error) {
       console.error("Failed to update profile:", error);
-      alert("Failed to save changes. Please try again.");
+      enqueueSnackbar("Failed to save changes. Please try again.", { variant: "error" });
     } finally {
       setIsSaving(false);
     }

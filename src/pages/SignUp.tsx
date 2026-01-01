@@ -4,20 +4,25 @@ import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
 import { LuSparkles } from 'react-icons/lu';
 import { register } from '../services/auth';
+import { useSnackbar } from 'notistack';
+import SuccessLoader from '../components/SuccessLoader';
 
 export default function SignUp() {
+
+const { enqueueSnackbar } = useSnackbar();
 
 const navigate = useNavigate();
 
 const [username, setUsername] = useState('');
 const [email, setEmail] = useState('');
 const [password, setPassword] = useState('');
+const [isSuccess, setIsSuccess] = useState(false);
 
 const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!username || !email || !password) {
-      alert('Please fill in all fields.');
+      enqueueSnackbar('Please fill in all fields.', { variant: 'warning' });
       return;
     }
 
@@ -32,8 +37,13 @@ const handleRegister = async (e: FormEvent) => {
       console.log(res.data);
       console.log(res.message);
 
-      alert('Registration successful! You can now log in.');
-      navigate('/login');
+      enqueueSnackbar('Registration successful! You can now log in.', { variant: 'success' });
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        navigate('/login');
+      }, 500);
 
     }catch (error: any) {
       console.error(error?.response?.data);
@@ -47,6 +57,10 @@ const handleGoogleLogin = () => {
 const handleFacebookLogin = () => {
   window.location.href = "http://localhost:5000/api/v1/auth/facebook";
 };
+
+if (isSuccess) {
+  return <SuccessLoader message="Registration successful! Redirecting to login..." />;
+}
 
   return (
     <div className="flex h-screen w-full font-sans">

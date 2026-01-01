@@ -1,9 +1,13 @@
 import React, { useEffect, useContext } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthContext } from "../context/authContext"; 
-import { getMyDetails } from "../services/auth";      
+import { getMyDetails } from "../services/auth";  
+import { useSnackbar } from 'notistack';    
 
 const AuthSuccess: React.FC = () => {
+
+  const { enqueueSnackbar } = useSnackbar();
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setUser } = useContext(AuthContext);
@@ -29,11 +33,11 @@ const AuthSuccess: React.FC = () => {
 
         } catch (error) {
             console.error("Failed to verify social login:", error);
-            alert("Social login failed. Please try logging in again.");
+            enqueueSnackbar("Social login failed. Please try logging in again.", { variant: "error" });
             navigate("/login");
         }
       } else {
-            alert("No access token found. Please try logging in again.");
+            enqueueSnackbar("No access token found. Please try logging in again.", { variant: "error" });
             navigate("/login");
 
       }
