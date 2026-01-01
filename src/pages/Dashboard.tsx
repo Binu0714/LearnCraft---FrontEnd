@@ -1,4 +1,4 @@
-import React, { useContext, useState} from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/authContext"; 
 import { 
@@ -7,25 +7,59 @@ import {
 } from "react-icons/fa";
 import { LuSparkles } from "react-icons/lu";
 import { updateMyDetails } from "../services/auth";
+import { getScheduleStats } from "../services/schedule"; // Ensure this service exists
 import { useSnackbar } from 'notistack';
 
 const Dashboard: React.FC = () => {
 
   const { enqueueSnackbar } = useSnackbar();
-
   const { user, setUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  // --- State: Profile Modal ---
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({ username: "", email: "" });
   const [isSaving, setIsSaving] = useState(false);
 
+  // --- State: Dashboard Stats ---
+  const [stats, setStats] = useState({
+    totalHours: 0,
+    activeSubjects: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  // --- Effect: Fetch Stats on Load ---
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data: any = await getScheduleStats();
+        // Handle response format (direct object or inside data property)
+        const statData = data.data || data; 
+        
+        if (statData) {
+          setStats({
+            totalHours: statData.totalHours || 0,
+            activeSubjects: statData.activeSubjects || 0
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load dashboard stats", error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  // --- Handlers ---
+
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUser(null);
-    navigate("/home");
+    navigate("/login"); // Fixed redirect to /login
   };
 
   const openProfile = () => {
@@ -43,13 +77,12 @@ const Dashboard: React.FC = () => {
     
     try {
       const response: any = await updateMyDetails(user!.id, editFormData);
-
       const updatedData = response.data || response;
 
       setUser((prev: any) => ({
         ...prev,
         ...updatedData,
-        username: editFormData.username, // Force update from form data to be instant
+        username: editFormData.username,
         email: editFormData.email
       }));
 
@@ -81,10 +114,10 @@ const Dashboard: React.FC = () => {
 
           {/* Center Links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/subjects">My Subjects</Link>
-            <Link to="/schedule">Smart Schedule</Link>
-            <Link to="/analytics">Analytics</Link>
+            <Link to="/dashboard" className="text-white text-sm font-medium border-b-2 border-blue-500 pb-0.5">Dashboard</Link>
+            <Link to="/subjects" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">My Subjects</Link>
+            <Link to="/schedule" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Smart Schedule</Link>
+            <Link to="/analytics" className="text-slate-400 hover:text-white transition-colors text-sm font-medium">Analytics</Link>
           </div>
 
           {/* Right Side: Profile & Logout */}
@@ -120,7 +153,7 @@ const Dashboard: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
             <p className="text-slate-500 mt-2">
-              Welcome back! You have <span className="text-blue-600 font-bold">2 sessions</span> planned for today.
+              Welcome back! Here is your learning progress overview.
             </p>
           </div>
           <button className="mt-4 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-blue-200 transition-all flex items-center gap-2">
@@ -128,18 +161,18 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* Stats Row */}
+        {/* Stats Row (Fetching Data) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <StatCard 
             title="Total Study Hours" 
-            value="24.5h" 
-            sub="+2.5h this week" 
+            value={loadingStats ? "..." : `${stats.totalHours}h`} 
+            sub="Based on generated schedules" 
             icon={<FaClock className="text-blue-500" />} 
           />
           <StatCard 
             title="Active Subjects" 
-            value="4" 
-            sub="On track" 
+            value={loadingStats ? "..." : stats.activeSubjects} 
+            sub="Scheduled in your plan" 
             icon={<FaBook className="text-purple-500" />} 
           />
           <StatCard 
@@ -195,11 +228,13 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-lg font-bold">AI Smart Plan</h3>
               </div>
               <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-                Based on your habits, you should study <strong>Data Structures</strong> today at 4:00 PM.
+                Check your personalized timetable generated by Gemini AI.
               </p>
-              <button className="w-full py-2.5 bg-white text-indigo-700 font-bold rounded-lg text-sm hover:bg-indigo-50 transition-colors">
-                Generate Schedule
-              </button>
+              <Link to="/schedule">
+                <button className="w-full py-2.5 bg-white text-indigo-700 font-bold rounded-lg text-sm hover:bg-indigo-50 transition-colors">
+                  Go to Schedule
+                </button>
+              </Link>
             </div>
 
             {/* Quick Subjects List */}
@@ -209,9 +244,11 @@ const Dashboard: React.FC = () => {
                 <SubjectTag name="Web Development" color="bg-blue-100 text-blue-700" />
                 <SubjectTag name="Data Structures" color="bg-green-100 text-green-700" />
                 <SubjectTag name="Mathematics" color="bg-orange-100 text-orange-700" />
-                <button className="w-full py-2 border border-dashed border-slate-300 rounded-lg text-slate-500 text-sm hover:bg-slate-50 hover:text-slate-700 transition-colors">
-                  + Add New Subject
-                </button>
+                <Link to="/subjects">
+                  <button className="w-full mt-2 py-2 border border-dashed border-slate-300 rounded-lg text-slate-500 text-sm hover:bg-slate-50 hover:text-slate-700 transition-colors">
+                    + Manage Subjects
+                  </button>
+                </Link>
               </div>
             </div>
 
@@ -242,7 +279,7 @@ const Dashboard: React.FC = () => {
                 {/* Avatar */}
                 <div className="relative group cursor-pointer mb-4">
                   <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center text-white text-4xl font-bold shadow-lg border-4 border-white ring-2 ring-blue-100">
-                    {editFormData.username.charAt(0).toUpperCase()}
+                    {editFormData.username ? editFormData.username.charAt(0).toUpperCase() : "U"}
                   </div>
                   {/* Camera Icon Overlay */}
                   <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -340,14 +377,7 @@ const Dashboard: React.FC = () => {
 
 /* --- SIMPLE HELPER COMPONENTS --- */
 
-// 1. Navigation Link Style
-const NavLink = ({ children, active }: { children: React.ReactNode, active?: boolean }) => (
-  <span className={`cursor-pointer text-sm font-medium transition-colors ${active ? "text-white" : "text-slate-400 hover:text-white"}`}>
-    {children}
-  </span>
-);
-
-// 2. Stat Card
+// 1. Stat Card
 const StatCard = ({ title, value, sub, icon }: any) => (
   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-start justify-between">
     <div>
@@ -359,7 +389,7 @@ const StatCard = ({ title, value, sub, icon }: any) => (
   </div>
 );
 
-// 3. Session Row
+// 2. Session Row
 const SessionRow = ({ subject, time, duration }: any) => (
   <div className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
     <div className="flex items-center gap-3">
@@ -373,7 +403,7 @@ const SessionRow = ({ subject, time, duration }: any) => (
   </div>
 );
 
-// 4. Subject Tag
+// 3. Subject Tag
 const SubjectTag = ({ name, color }: any) => (
   <div className={`px-3 py-2 rounded-lg text-sm font-medium ${color}`}>
     {name}
